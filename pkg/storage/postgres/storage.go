@@ -1,34 +1,24 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"log"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Storage struct {
-	DB *gorm.DB
-}
+func ConnectDB(cfg Config) (*pgxpool.Pool, error) {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable pool_max_conns=%d",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.PoolSize)
 
-func ConnectDB(cfg Config) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		cfg.Host, cfg.User, cfg.Password, cfg.Database, cfg.Port)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
-	if err != nil {
-		return nil, err
-	}
-	log.Println("Connected!")
-	db.Logger = logger.Default.LogMode(logger.Info)
-
-	log.Println("Running migrations..")
-	//err = db.AutoMigrate(&models.Person{})
+	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	return db, nil
+	conn, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
 }

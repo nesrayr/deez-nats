@@ -3,11 +3,13 @@ package models
 import "time"
 
 type Order struct {
-	ID                string    `json:"order_uid" gorm:"primary key"`
+	ID                string    `json:"order_uid"`
 	TrackNumber       string    `json:"track_number"`
 	Entry             string    `json:"entry"`
 	Delivery          Delivery  `json:"delivery"`
+	DeliveryID        string    `gorm:"type:uuid"`
 	Payment           Payment   `json:"payment"`
+	PaymentID         string    `gorm:"type:uuid"`
 	Items             []Item    `json:"items"`
 	Locale            string    `json:"locale"`
 	InternalSignature string    `json:"internal_signature"`
@@ -20,6 +22,7 @@ type Order struct {
 }
 
 type Delivery struct {
+	ID      string
 	Name    string `json:"name"`
 	Phone   string `json:"phone"`
 	Zip     string `json:"zip"`
@@ -30,6 +33,7 @@ type Delivery struct {
 }
 
 type Payment struct {
+	ID           string
 	Transaction  string `json:"transaction"`
 	RequestID    string `json:"request_id"`
 	Currency     string `json:"currency"`
@@ -43,6 +47,8 @@ type Payment struct {
 }
 
 type Item struct {
+	ID          string
+	OrderID     string `gorm:"type:uuid"`
 	ChartID     int64  `json:"chrt_id"`
 	TrackNumber string `json:"track_number"`
 	Price       int64  `json:"price"`

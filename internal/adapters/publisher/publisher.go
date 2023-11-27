@@ -2,11 +2,12 @@ package publisher
 
 import (
 	"deez-nats/pkg/logging"
+	"encoding/json"
 	"github.com/nats-io/stan.go"
 )
 
 type IPublisher interface {
-	PublishData(data []byte, subject string) error
+	PublishData(data map[string]interface{}, subject string) error
 	Close() error
 }
 
@@ -17,7 +18,8 @@ type Publisher struct {
 
 // Connect to NATS Streaming server
 func NewPublisher(cfg Config, l logging.Logger) (*Publisher, error) {
-	sc, err := stan.Connect(cfg.ClusterID, cfg.PublisherClient)
+	l.Debug(cfg.ClusterID, cfg.PublisherClient)
+	sc, err := stan.Connect(cfg.ClusterID, cfg.PublisherClient, stan.NatsURL(cfg.URL))
 	if err != nil {
 		return nil, err
 	}
@@ -25,13 +27,20 @@ func NewPublisher(cfg Config, l logging.Logger) (*Publisher, error) {
 	return &Publisher{sc: sc, l: &l}, nil
 }
 
-func (p *Publisher) PublishData(data []byte, subject string) error {
-	err := p.sc.Publish(subject, data)
+func (p *Publisher) PublishData(data map[string]interface{}, subject string) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		p.l.Errorf("error marshaling JSON: %v", err)
+		return err
+	}
+
+	err = p.sc.Publish(subject, jsonData)
 	if err != nil {
 		p.l.Errorf("error publishing message: %v", err)
 		return err
 	}
 	p.l.Info("data successfully published")
+
 	return nil
 }
 

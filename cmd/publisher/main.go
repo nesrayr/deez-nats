@@ -3,20 +3,17 @@ package main
 import (
 	"context"
 	"deez-nats/config"
-	"deez-nats/internal/adapters/subscriber"
-	"deez-nats/internal/migrations"
-	"deez-nats/internal/repo"
+	"deez-nats/internal/adapters/publisher"
+	router "deez-nats/internal/ports/publisher"
 	"deez-nats/pkg/logging"
-	"deez-nats/pkg/storage/cache"
-	"deez-nats/pkg/storage/postgres"
 	"fmt"
 	"github.com/heetch/confita"
 	"github.com/heetch/confita/backend/env"
 	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
+	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 )
 
@@ -36,36 +33,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Debug(cfg)
-
-	db, err := postgres.ConnectDB(cfg.Database)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	migrations.MigrateDB("up", log, "./internal/migrations")
-
-	c := cache.NewCache()
-
-	repository := repo.NewRepository(db, c, log)
-
-	sub, err := subscriber.NewSubscriber(cfg.Subscriber, log, repository)
+	pub, err := publisher.NewPublisher(cfg.Publisher, log)
 	if err != nil {
 		log.Error(err)
 	}
 	defer func() {
-		_ = sub.Close()
+		_ = pub.Close()
 	}()
-	log.Debug("successfully connected to nats-streaming")
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
+	r := router.SetupRoutes(pub, log)
 
-	go func() {
-		defer wg.Done()
-		sub.ReadMessages("subject")
-	}()
+	err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), r)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// configuring graceful shutdown
 	sigQuit := make(chan os.Signal, 1)
@@ -82,6 +63,4 @@ func main() {
 			return nil
 		}
 	})
-
-	wg.Wait()
 }
