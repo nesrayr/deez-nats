@@ -1,9 +1,13 @@
 package config
 
-import "deez-nats/pkg/storage/postgres"
+import (
+	"deez-nats/internal/adapters/publisher"
+	"deez-nats/pkg/storage/postgres"
+)
 
 type Config struct {
-	Host     string `config:"HOST" yaml:"host"`
-	Port     string `config:"PORT" yaml:"port"`
-	Database postgres.Config
+	Host      string `config:"HOST" yaml:"host"`
+	Port      string `config:"PORT" yaml:"port"`
+	Database  postgres.Config
+	Publisher publisher.Config
 }

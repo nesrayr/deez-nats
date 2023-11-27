@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"deez-nats/config"
+	"deez-nats/internal/models"
 	"deez-nats/pkg/logging"
 	"deez-nats/pkg/storage/postgres"
 	"fmt"
@@ -14,9 +15,8 @@ import (
 	"syscall"
 )
 
-var log = logging.GetLogger()
-
 func main() {
+	var log = logging.GetLogger()
 
 	ctx := context.Background()
 
@@ -26,7 +26,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = postgres.ConnectDB(cfg.Database)
+	db, err := postgres.ConnectDB(cfg.Database)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		dbInstance, _ := db.DB()
+		_ = dbInstance.Close()
+	}()
+
+	err = db.AutoMigrate(&models.Order{})
 	if err != nil {
 		log.Fatal(err)
 	}

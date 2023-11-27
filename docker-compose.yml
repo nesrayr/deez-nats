@@ -31,3 +31,12 @@ services:
       - data-db:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+  nats:
+    image: nats-streaming
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["-store", "file", "-dir", "/data", "-p", "4222"]
+    volumes:
+      - ./data:/data
