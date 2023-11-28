@@ -19,25 +19,25 @@ type PermanentRepo struct {
 }
 
 func (r *PermanentRepo) CreateOrder(ctx context.Context, order models.Order) error {
-	tx, err := r.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
+	tx, err := r.Begin(ctx)
 	if err != nil {
 		r.Error(err)
 		return err
 	}
 	var rollbackError error
-	defer func(tx pgx.Tx, ctx context.Context) {
-		if rollbackError != nil {
+	defer func(tx pgx.Tx, ctx context.Context, err *error) {
+		if *err != nil {
 			r.Info("rollback transaction")
-			err := tx.Rollback(ctx)
-			if err != nil {
+			rollbackErr := tx.Rollback(ctx)
+			if rollbackErr != nil {
 				r.Error("tx already closed")
 			}
 		}
-	}(tx, ctx)
+	}(tx, ctx, &rollbackError)
 
 	delivery := order.Delivery
 	var deliveryID string
-	err = r.QueryRow(ctx, insertDeliveryQuery,
+	err = tx.QueryRow(ctx, insertDeliveryQuery,
 		delivery.Name,
 		delivery.Phone,
 		delivery.Zip,
@@ -54,7 +54,7 @@ func (r *PermanentRepo) CreateOrder(ctx context.Context, order models.Order) err
 
 	payment := order.Payment
 	var paymentID string
-	err = r.QueryRow(ctx, insertPaymentQuery,
+	err = tx.QueryRow(ctx, insertPaymentQuery,
 		payment.Transaction,
 		payment.RequestID,
 		payment.Currency,
@@ -72,7 +72,7 @@ func (r *PermanentRepo) CreateOrder(ctx context.Context, order models.Order) err
 		return err
 	}
 
-	_, err = r.Exec(ctx, insertOrderQuery,
+	_, err = tx.Exec(ctx, insertOrderQuery,
 		order.ID,
 		order.TrackNumber,
 		order.Entry,
@@ -95,7 +95,7 @@ func (r *PermanentRepo) CreateOrder(ctx context.Context, order models.Order) err
 
 	items := order.Items
 	for _, i := range items {
-		_, err = r.Exec(ctx, insertItemQuery,
+		_, err = tx.Exec(ctx, insertItemQuery,
 			order.ID,
 			i.ChartID,
 			i.TrackNumber,
@@ -117,6 +117,7 @@ func (r *PermanentRepo) CreateOrder(ctx context.Context, order models.Order) err
 	}
 
 	if err = tx.Commit(ctx); err != nil {
+		rollbackError = err
 		return err
 	}
 

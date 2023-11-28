@@ -43,7 +43,7 @@ func main() {
 
 	r := router.SetupRoutes(pub, log)
 
-	err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), r)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.PublisherPort), r)
 	if err != nil {
 		log.Fatal(err)
 	}

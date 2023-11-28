@@ -39,8 +39,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Debug(cfg)
-
 	db, err := postgres.ConnectDB(cfg.Database)
 	if err != nil {
 		log.Fatal(err)
@@ -78,7 +76,7 @@ func main() {
 
 	r := router.SetupRoutes(repository, log)
 
-	err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), r)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.SubscriberPort), r)
 	if err != nil {
 		log.Fatal(err)
 	}

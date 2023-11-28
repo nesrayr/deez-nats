@@ -32,24 +32,32 @@ func NewSubscriber(cfg Config, l logging.Logger, repo repo.IRepository) (*Subscr
 }
 
 func (s *Subscriber) ReadMessages(ctx context.Context, subject string, wg *sync.WaitGroup) {
-	s.l.Debug("reading messages")
+	s.l.Info("reading messages")
+
 	wg.Add(1)
+	defer wg.Done()
 	sub, _ := s.sc.Subscribe(subject, func(msg *stan.Msg) {
-		defer wg.Done()
+
 		var receivedOrder models.Order
 		err := json.Unmarshal(msg.Data, &receivedOrder)
 		if err != nil {
 			s.l.Errorf("cannot unmarshal data %v", err)
+			return
 		}
-		s.l.Debug(receivedOrder)
+
+		if receivedOrder.ID == "" {
+			s.l.Error("no order_uid")
+			return
+		}
+
 		err = s.repo.AddOrder(ctx, receivedOrder)
 		if err != nil {
 			s.l.Errorf("error adding order %v", err)
+			return
 		}
 	}, stan.DeliverAllAvailable())
 	wg.Wait()
 	defer func(sub stan.Subscription) {
-		s.l.Debug("closing subscriber")
 		err := sub.Close()
 		if err != nil {
 			s.l.Errorf("error closing subscriber %v", err)
