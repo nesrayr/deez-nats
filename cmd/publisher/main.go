@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"deez-nats/config"
-	"deez-nats/internal/adapters/publisher"
 	router "deez-nats/internal/ports/publisher"
+	"deez-nats/internal/service/publisher"
 	"deez-nats/pkg/logging"
 	"fmt"
 	"github.com/heetch/confita"

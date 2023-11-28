@@ -1,13 +1,14 @@
 package publisher
 
 import (
-	"deez-nats/internal/adapters/publisher"
+	"deez-nats/internal/service/publisher"
 	"deez-nats/pkg/logging"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type IHandler interface {
+	PublishMessage(ctx *gin.Context)
 }
 
 type Handler struct {

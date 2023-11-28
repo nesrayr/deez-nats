@@ -9,7 +9,7 @@ import (
 
 func ConnectDB(cfg Config) (*pgxpool.Pool, error) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable pool_max_conns=%d",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.PoolSize)
+		"localhost", cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.PoolSize)
 
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {

@@ -1,6 +1,6 @@
 #FROM golang:1.21-alpine
 #
-#WORKDIR /usr/src/app
+#WORKDIR /usr/src/subscriber
 #
 #COPY go.mod go.sum ./
 #
@@ -9,8 +9,8 @@
 #COPY . .
 #RUN mkdir -p /usr/local/bin/
 #RUN go mod tidy
-#RUN go build -o /usr/local/bin/app ./cmd/app
+#RUN go build -o /usr/local/bin/subscriber ./cmd/subscriber
 #
 #EXPOSE 8080
 #
-#CMD ["/usr/local/bin/app"]
+#CMD ["/usr/local/bin/subscriber"]

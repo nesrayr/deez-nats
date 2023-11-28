@@ -2,18 +2,15 @@ package migrations
 
 import (
 	"deez-nats/pkg/logging"
+	"deez-nats/pkg/storage/postgres"
 	"fmt"
+	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
-	"os"
 )
 
-func MigrateDB(command string, log logging.Logger, dir string, arguments ...string) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
+func MigrateDB(command string, log logging.Logger, cfg postgres.Config, dir string, arguments ...string) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
+		"localhost", cfg.User, cfg.Password, cfg.Database, cfg.Port,
 	)
 	db, err := goose.OpenDBWithDriver("postgres", dsn)
 	if err != nil {

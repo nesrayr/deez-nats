@@ -1,8 +1,8 @@
 package config
 
 import (
-	"deez-nats/internal/adapters/publisher"
-	"deez-nats/internal/adapters/subscriber"
+	"deez-nats/internal/service/publisher"
+	"deez-nats/internal/service/subscriber"
 	"deez-nats/pkg/storage/postgres"
 )
 

@@ -18,7 +18,6 @@ type Publisher struct {
 
 // Connect to NATS Streaming server
 func NewPublisher(cfg Config, l logging.Logger) (*Publisher, error) {
-	l.Debug(cfg.ClusterID, cfg.PublisherClient)
 	sc, err := stan.Connect(cfg.ClusterID, cfg.PublisherClient, stan.NatsURL(cfg.URL))
 	if err != nil {
 		return nil, err

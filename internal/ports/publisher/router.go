@@ -1,7 +1,7 @@
 package publisher
 
 import (
-	"deez-nats/internal/adapters/publisher"
+	"deez-nats/internal/service/publisher"
 	"deez-nats/pkg/logging"
 	"github.com/gin-gonic/gin"
 )

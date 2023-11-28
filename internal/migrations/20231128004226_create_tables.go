@@ -17,7 +17,7 @@ func upCreateTables(tx *sql.Tx) error {
 
 	_, err = tx.Exec(`
 	create table if not exists deliveries(
-	    id UUID PRIMARY KEY,
+	    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
 		name VARCHAR(255) NOT NULL,
 		phone VARCHAR(20) NOT NULL,
 		zip VARCHAR(10) NOT NULL,
@@ -33,7 +33,7 @@ func upCreateTables(tx *sql.Tx) error {
 
 	_, err = tx.Exec(`
 	create table if not exists payments (
-	    id UUID PRIMARY KEY,
+	    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
 		transaction VARCHAR(255) NOT NULL,
 		request_id VARCHAR(255) NOT NULL,
 		currency VARCHAR(3) NOT NULL,
@@ -52,8 +52,7 @@ func upCreateTables(tx *sql.Tx) error {
 
 	_, err = tx.Exec(`
 	CREATE TABLE IF NOT EXISTS orders(
-	    id UUID PRIMARY KEY,
-		order_uid VARCHAR(255) NOT NULL,
+	    id varchar(255) PRIMARY KEY,
 		track_number VARCHAR(255) NOT NULL,
 		entry VARCHAR(255) NOT NULL,
 		delivery_id UUID REFERENCES deliveries(id),
@@ -73,8 +72,8 @@ func upCreateTables(tx *sql.Tx) error {
 
 	_, err = tx.Exec(`
 	create table if not exists items(
-	    id UUID PRIMARY KEY,
-		order_id UUID REFERENCES orders(id),
+	    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+		order_id varchar(255) REFERENCES orders(id),
 		chrt_id BIGINT NOT NULL,
 		track_number VARCHAR(255) NOT NULL,
 		price BIGINT NOT NULL,

@@ -1,11 +1,13 @@
 package subscriber
 
 import (
+	"context"
 	"deez-nats/internal/models"
 	"deez-nats/internal/repo"
 	"deez-nats/pkg/logging"
 	"encoding/json"
 	"github.com/nats-io/stan.go"
+	"sync"
 )
 
 type ISubscriber interface {
@@ -29,19 +31,25 @@ func NewSubscriber(cfg Config, l logging.Logger, repo repo.IRepository) (*Subscr
 	return &Subscriber{sc: sc, l: &l, repo: repo}, nil
 }
 
-func (s *Subscriber) ReadMessages(subject string) {
+func (s *Subscriber) ReadMessages(ctx context.Context, subject string, wg *sync.WaitGroup) {
+	s.l.Debug("reading messages")
+	wg.Add(1)
 	sub, _ := s.sc.Subscribe(subject, func(msg *stan.Msg) {
+		defer wg.Done()
 		var receivedOrder models.Order
 		err := json.Unmarshal(msg.Data, &receivedOrder)
 		if err != nil {
 			s.l.Errorf("cannot unmarshal data %v", err)
 		}
-		err = s.repo.AddOrder(receivedOrder)
+		s.l.Debug(receivedOrder)
+		err = s.repo.AddOrder(ctx, receivedOrder)
 		if err != nil {
 			s.l.Errorf("error adding order %v", err)
 		}
 	}, stan.DeliverAllAvailable())
+	wg.Wait()
 	defer func(sub stan.Subscription) {
+		s.l.Debug("closing subscriber")
 		err := sub.Close()
 		if err != nil {
 			s.l.Errorf("error closing subscriber %v", err)
