@@ -71,7 +71,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		sub.ReadMessages(ctx, "subject", &wg)
+		sub.ReadMessages(ctx, cfg.Publisher.Subject, &wg)
 	}()
 
 	r := router.SetupRoutes(repository, log)

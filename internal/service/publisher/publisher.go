@@ -7,13 +7,14 @@ import (
 )
 
 type IPublisher interface {
-	PublishData(data map[string]interface{}, subject string) error
+	PublishData(data map[string]interface{}) error
 	Close() error
 }
 
 type Publisher struct {
-	sc stan.Conn
-	l  *logging.Logger
+	sc      stan.Conn
+	l       *logging.Logger
+	subject string
 }
 
 // Connect to NATS Streaming server
@@ -23,17 +24,17 @@ func NewPublisher(cfg Config, l logging.Logger) (*Publisher, error) {
 		return nil, err
 	}
 
-	return &Publisher{sc: sc, l: &l}, nil
+	return &Publisher{sc: sc, l: &l, subject: cfg.Subject}, nil
 }
 
-func (p *Publisher) PublishData(data map[string]interface{}, subject string) error {
+func (p *Publisher) PublishData(data map[string]interface{}) error {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		p.l.Errorf("error marshaling JSON: %v", err)
 		return err
 	}
 
-	err = p.sc.Publish(subject, jsonData)
+	err = p.sc.Publish(p.subject, jsonData)
 	if err != nil {
 		p.l.Errorf("error publishing message: %v", err)
 		return err
