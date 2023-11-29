@@ -84,7 +84,8 @@
 
 ```text
 HOST=localhost
-PORT=8080
+SUBSCRIBER_PORT=8080
+PUBLISHER_PORT=8081
 
 # db
 DB_USER=user
